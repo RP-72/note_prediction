@@ -10,7 +10,8 @@ import array
 from collections import Counter
 from pydub.utils import get_array_type
 from Levenshtein import distance
-
+# Creating a variable count to keep track of the graphs
+count = 0
 NOTES = {
     "A": 440,
     "A#": 466.1637615180899,
@@ -37,7 +38,6 @@ def frequency_spectrum(sample, max_frequency=800):
     bit_depth = sample.sample_width * 8
     array_type = get_array_type(bit_depth)
     raw_audio_data = array.array(array_type, sample._data)
-    print(raw_audio_data)
     n = len(raw_audio_data)
 
     # Compute FFT and frequency value for each index in FFT array
@@ -160,7 +160,6 @@ def main(file, note_file=None, note_starts_file=None, plot_starts=False, plot_ff
 
     song = AudioSegment.from_file(file)
     song = song.high_pass_filter(80, order=4)
-
     starts = predict_note_starts(song, plot_starts, actual_starts)
 
     predicted_notes = predict_notes(song, starts, actual_notes, plot_fft_indices)
@@ -186,6 +185,7 @@ def main(file, note_file=None, note_starts_file=None, plot_starts=False, plot_ff
 # actual_starts: []float, time into song of each actual note start (seconds)
 #
 # Returns perdicted starts in ms
+    
 def predict_note_starts(song, plot, actual_starts):
     # Size of segments to break song into for volume calculations
     SEGMENT_MS = 50
@@ -218,9 +218,11 @@ def predict_note_starts(song, plot, actual_starts):
         print("Predicted note start times ({})".format(len(predicted_starts)))
         print(" ".join(["{:5.2f}".format(ms / 1000) for ms in predicted_starts]))
 
+    
     # Plot the volume over time (sec)
+    x_axis = np.arange(len(volume)) * (SEGMENT_MS / 1000)
+    graph_plotter(x_axis, volume)
     if plot:
-        x_axis = np.arange(len(volume)) * (SEGMENT_MS / 1000)
         plt.plot(x_axis, volume)
 
         # Add vertical lines for predicted note starts and actual note starts
@@ -230,9 +232,26 @@ def predict_note_starts(song, plot, actual_starts):
             plt.axvline(x=(ms / 1000), color="g", linewidth=0.5, linestyle=":")
 
         plt.show()
-
     return predicted_starts
-
+def graph_plotter(x_axis, volume, text=-0.8, pos=-1):
+    # Plotting a graph to visualize expectation values and parameters.   
+    figure = plt.figure(figsize=(20,15))
+    axes = figure.add_subplot()
+    axes.plot(x_axis, volume, linewidth=2.5, color='blue')
+    # The best parameter is 0 which one would expect
+    # Controlling the minor, major graduation and then graduation for both axes
+    axes.tick_params(which='minor', length=3, color='black')
+    axes.tick_params(which='major', length=5) 
+    axes.tick_params(which='both', width=2) 
+    axes.tick_params(labelcolor='black', labelsize=15, width=3.5)
+    plt.ylabel(r'$Expectation \; values$', {'fontsize': 21, 'color': 'y'})
+    plt.xlabel(r'$The\; parameter\; ranges\; from\; [-\pi,\pi)$',  {'fontsize': 21, 'color': 'y'})
+    plt.grid()
+    global count
+    plt.title(f"Graph {count+1}", {'color': 'y', 'fontsize': 45})
+    plt.savefig(f'graph{count+1}.png')
+    count += 1
+    plt.show()
 
 def predict_notes(song, starts, actual_notes, plot_fft_indices):
     predicted_notes = []
@@ -272,6 +291,7 @@ def predict_notes(song, starts, actual_notes, plot_fft_indices):
             plt.xlabel("Freq (Hz)")
             plt.ylabel("|X(freq)|")
             plt.show()
+    graph_plotter(freqs, freq_magnitudes)
     return predicted_notes
 
 
