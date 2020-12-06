@@ -6,11 +6,8 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-
 import array
 from collections import Counter
-
-
 from pydub.utils import get_array_type
 from Levenshtein import distance
 
@@ -40,6 +37,7 @@ def frequency_spectrum(sample, max_frequency=800):
     bit_depth = sample.sample_width * 8
     array_type = get_array_type(bit_depth)
     raw_audio_data = array.array(array_type, sample._data)
+    print(raw_audio_data)
     n = len(raw_audio_data)
 
     # Compute FFT and frequency value for each index in FFT array
@@ -204,11 +202,12 @@ def predict_note_starts(song, plot, actual_starts):
     volume = [segment.dBFS for segment in song[::SEGMENT_MS]]
 
     predicted_starts = []
-    print(volume)
+    # checking for volume and edge threshold parameters
     for i in range(1, len(volume)):
         if volume[i] > VOLUME_THRESHOLD and volume[i] - volume[i - 1] > EDGE_THRESHOLD:
             ms = i * SEGMENT_MS
             # Ignore any too close together
+            # Checking for min ms condition
             if len(predicted_starts) == 0 or ms - predicted_starts[-1] >= MIN_MS_BETWEEN:
                 predicted_starts.append(ms)
     
