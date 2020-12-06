@@ -221,9 +221,9 @@ def predict_note_starts(song, plot, actual_starts):
     
     # Plot the volume over time (sec)
     x_axis = np.arange(len(volume)) * (SEGMENT_MS / 1000)
-    graph_plotter(x_axis, volume)
+    graph_plotter(x_axis, volume, "dBFS vs Time", "Time(in seconds)", "dBFS(Decibels relative to full scale)")
     if plot:
-        plt.plot(x_axis, volume)
+        plt.plot(x_axis, volume, "dBFS vs Time", "Time(in seconds)", "dBFS(Decibels relative to full scale)")
 
         # Add vertical lines for predicted note starts and actual note starts
         for s in actual_starts:
@@ -233,25 +233,24 @@ def predict_note_starts(song, plot, actual_starts):
 
         plt.show()
     return predicted_starts
-def graph_plotter(x_axis, volume, text=-0.8, pos=-1):
+def graph_plotter(x_axis, y_axis, title, xlabel, ylabel, text=-0.8, pos=-1):
     # Plotting a graph to visualize expectation values and parameters.   
     figure = plt.figure(figsize=(20,15))
     axes = figure.add_subplot()
-    axes.plot(x_axis, volume, linewidth=2.5, color='blue')
+    axes.plot(x_axis, y_axis, linewidth=2.5, color='blue')
     # The best parameter is 0 which one would expect
     # Controlling the minor, major graduation and then graduation for both axes
     axes.tick_params(which='minor', length=3, color='black')
     axes.tick_params(which='major', length=5) 
     axes.tick_params(which='both', width=2) 
     axes.tick_params(labelcolor='black', labelsize=15, width=3.5)
-    plt.ylabel(r'$Expectation \; values$', {'fontsize': 21, 'color': 'y'})
-    plt.xlabel(r'$The\; parameter\; ranges\; from\; [-\pi,\pi)$',  {'fontsize': 21, 'color': 'y'})
+    plt.ylabel(ylabel, {'fontsize': 21, 'color': 'y'})
+    plt.xlabel(xlabel,  {'fontsize': 21, 'color': 'y'})
     plt.grid()
     global count
-    plt.title(f"Graph {count+1}", {'color': 'y', 'fontsize': 45})
-    plt.savefig(f'graph{count+1}.png')
+    plt.title(title, {'color': 'y', 'fontsize': 45})
+    plt.savefig(f'graph{count}.png')
     count += 1
-    plt.show()
 
 def predict_notes(song, starts, actual_notes, plot_fft_indices):
     predicted_notes = []
@@ -263,7 +262,7 @@ def predict_notes(song, starts, actual_notes, plot_fft_indices):
         segment = song[sample_from:sample_to]
         freqs, freq_magnitudes = frequency_spectrum(segment)
 
-        predicted = classify_note_attempt_3(freqs, freq_magnitudes)
+        predicted = classify_note_attempt_1(freqs, freq_magnitudes)
         predicted_notes.append(predicted or "U")
 
         # Print general info
@@ -287,11 +286,12 @@ def predict_notes(song, starts, actual_notes, plot_fft_indices):
             print("{:.1f}hz with magnitude {:.3f}".format(freq, magnitude))
 
         if i in plot_fft_indices:
-            plt.plot(freqs, freq_magnitudes, "b")
+            
+            """plt.plot(freqs, freq_magnitudes, "b")
             plt.xlabel("Freq (Hz)")
             plt.ylabel("|X(freq)|")
-            plt.show()
-    graph_plotter(freqs, freq_magnitudes)
+            plt.show()"""
+        graph_plotter(freqs, freq_magnitudes, "Magnitude of the frequency response", "Frequency(in Hertz)", "|X(omega)|")
     return predicted_notes
 
 
