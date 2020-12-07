@@ -98,8 +98,9 @@ def classify_note_attempt_3(freq_array, freq_magnitude):
             note = get_note_for_freq(freq)
             if note:
                 note_counter[note] += freq_magnitude[i] * credit_multiplier
-
-    return note_counter.most_common(1)[0][0]
+    print(note_counter)
+    if note_counter != None:
+        return note_counter.most_common(1)[0][0]
 
 
 # If f is within tolerance of a note (measured in cents - 1/100th of a semitone)
@@ -262,7 +263,7 @@ def predict_notes(song, starts, actual_notes, plot_fft_indices):
         segment = song[sample_from:sample_to]
         freqs, freq_magnitudes = frequency_spectrum(segment)
 
-        predicted = classify_note_attempt_1(freqs, freq_magnitudes)
+        predicted = classify_note_attempt_3(freqs, freq_magnitudes)
         predicted_notes.append(predicted or "U")
 
         # Print general info
